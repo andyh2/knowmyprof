@@ -2,6 +2,8 @@
 <div style="width: 600px">
     <h2><a href="">{{ query.title() }}'s Research History</a></h2>
     <h3>{{ publication_count }} publications over {{ year_count }} years at {{ histogram_by_university.keys() | length }} institutions</h3>
+    <h3>{{ total_citations }} total citations</h3>
+    <h3>Publications over time</h3>
     <div id="vis_0"></div>
 
     <script type="text/json" id="histogramsByUniversity">

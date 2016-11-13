@@ -27,6 +27,11 @@ a, a:visited {
         <input type="submit" value="Search" />
     </form>
     <p>Don't rate your professor, know your professor.</p>
+    <br />
+    <br />
+    <br />
+    <br />
+    <br />
     {% for university in universities %}
         <p><a href="/university/{{ university['code'] }}">{{ university['name'] }}</a></p>
     {% endfor %}

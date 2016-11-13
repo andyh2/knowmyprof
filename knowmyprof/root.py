@@ -32,5 +32,6 @@ def search():
     overall_histogram=overall_histogram,
     year_count=year_count,
     publication_count=publication_count,
+    total_citations=academic_knowledge.total_citations(results_by_uni),
     api_results=results_by_uni)
 

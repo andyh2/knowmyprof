@@ -176,7 +176,17 @@ def get_overall_histogram(histogram_by_university):
 
 def year_count(overall_histogram):
     years = [h['year'] for h in overall_histogram]
-    return max(years) - min(years)
+    if not years:
+        return 0
+    else:
+        return max(years) - min(years)
+
+def total_citations(results_by_uni):
+    citations = []
+    for uni, results in results_by_uni.items():
+        citations += [res['citation_count'] for res in results['results']]
+
+    return sum(citations)
 
 def publication_count(overall_histogram):
     return sum([h['publications'] for h in overall_histogram])
