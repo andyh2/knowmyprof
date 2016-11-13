@@ -29,7 +29,7 @@ a, a:visited {
 </style>
 <div style="width: 600px">
 <h2><a href="">{{ query.title() }}'s Research History</a></h2>
-<p>{{ publication_count }} publications over {{ year_count }} years</p>
+<h3>{{ publication_count }} publications over {{ year_count }} years at {{ histogram_by_university.keys() | length }} institutions</h3>
 <div id="vis_0"></div>
 <script type="text/json" id="histogramsByUniversity">
 {{ histogram_by_university | tojson }}
@@ -37,47 +37,10 @@ a, a:visited {
 <script type="text/json" id="overallHistogram">
 {{ overall_histogram | tojson }}
 </script>
-
+<script type="text/javascript" src="histogram.js" />
 <script type="text/javascript">
 var histogramsByUniversity = JSON.parse(document.getElementById('histogramsByUniversity').innerText);
 var overallHistogram = JSON.parse(document.getElementById('overallHistogram').innerText);
-function histogram(histogramArr, id) {
-    var histogramYears = histogramArr.map(function(u) { return u['year']; });
-    var scaleMin = Math.min.apply(null, histogramYears);
-    var scaleMax = Math.max.apply(null, histogramYears);
-    console.log(histogramYears)
-    console.log(scaleMin, scaleMax);
-    var vlSpec = {
-      "data": {'values': histogramArr},
-      "mark": "bar",
-      "description": "",
-      actions: false,
-      "encoding": {
-        "x": {
-          "field": "year",
-          "type": "ordinal",
-          'title': 'Year',
-          'scale': {
-            // domain: [scaleMin, scaleMax],
-            bandSize: 17
-          }
-        },
-        "y": {
-          "field": "publications",
-          "type": "quantitative"
-        }
-      }
-    }
-
-    var embedSpec = {
-      mode: "vega-lite",
-      spec: vlSpec,
-      actions: false
-    }
-    vg.embed("#vis_" + id, embedSpec, function(error, result) {
-        console.log(result)
-    });
-}
 histogram(overallHistogram, 0);
 </script>
 <ul>

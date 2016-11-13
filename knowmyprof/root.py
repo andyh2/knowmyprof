@@ -8,6 +8,13 @@ app.debug = True
 def home():
   return render_template('index.html')
 
+@app.route('/university/<name>')
+def university(name):
+    name = name.replace('-', ' ')
+    return render_template('university.html',
+        histogram=professor.histogram_for_uni(name),
+        university=name.title())
+
 UNIVERSITIES = ['university of california davis', 'university of california berkeley']
 @app.route('/search')
 def search():

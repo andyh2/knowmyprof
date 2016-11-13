@@ -62,19 +62,25 @@ def entities_for_query(query, count=10):
 
 def clean_histogram(histograms):
     return next(h for h in histograms if h['attribute'] == 'Y')
-def histogram_for_query(query, count=100):
+def histogram_for_query(query, count=50, attributes=ALL_ATTRIBUTES):
     params = {
         'expr': query,
         'model': 'latest',
         'count': count,
         'offset': 0,
-        'attributes': ALL_ATTRIBUTES
+        'attributes': attributes
     }
     r = requests.get(HISTOGRAM_ENDPOINT, params=params, headers=AUTH_HEADERS)
 
     response = json.loads(r.text)
     return [histogram for histogram in response['histograms']
         if histogram['attribute'] == 'Y']
+
+def histogram_for_uni(name):
+    query = UNIVERSITY_QUERY_EXP.format(name=name)
+    histograms = histogram_for_query(query, attributes=['Y'])[0]['histogram']
+    return sorted([{'year': h['value'], 'publications': h['count']} for h in histograms],
+        key=lambda h: h['year'])
 
 ATTRIBUTE_NAMES_BY_CODE = {
     'logprob': 'logprob',
