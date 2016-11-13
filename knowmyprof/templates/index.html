@@ -12,6 +12,9 @@ p {
 hr {
     width: 100%;
 }
+h4 {
+    margin: 8px 0;
+}
 a, a:visited {
     color: #0057ca;
     text-decoration: none
@@ -20,18 +23,19 @@ a, a:visited {
 <div style="width: 600px; margin: 0 auto; text-align: center">
     <img width="200px" style="transform: scaleX(-1)" src="https://image.freepik.com/free-icon/graduation-cap-variant_318-47155.jpg" />
     <h1 >Know My Professor</h1>
-        <p>Want to know what your professors spend the majority of their time on?</p>
         <p>Search any professor and see their published research!</p>
     <form action="/search">
-        <input type="text" name="q" style="line-height: 2em; font-size: 1em" placeholder="Albert Einstein" />
+        <input type="text" name="q" style="line-height: 2em; font-size: 1em" placeholder="Albert Einstein"  />
         <input type="submit" value="Search" />
     </form>
-    <p>Don't rate your professor, know your professor.</p>
+    <p>Try searching for "christopher nitta" or "roger boulton"</p>
     <br />
     <br />
     <br />
     <br />
     <br />
+    <h4>Know My University (beta)</h4>
+    <p>See your school's publication activity</p>
     {% for university in universities %}
         <p><a href="/university/{{ university['code'] }}">{{ university['name'] }}</a></p>
     {% endfor %}
