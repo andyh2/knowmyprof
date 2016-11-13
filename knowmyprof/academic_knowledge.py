@@ -109,8 +109,11 @@ def histogram_for_query(query, count=50, attributes=ALL_ATTRIBUTES):
     r = requests.get(HISTOGRAM_ENDPOINT, params=params, headers=AUTH_HEADERS)
 
     response = json.loads(r.text)
+    if 'error' in response:
+        raise Exception('Rate limit error')
     return [histogram for histogram in response['histograms']
         if histogram['attribute'] == 'Y']
+
 
 def histogram_for_uni(name):
     query = UNIVERSITY_QUERY_EXP.format(name=name)

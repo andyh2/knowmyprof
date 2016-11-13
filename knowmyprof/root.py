@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request
 from . import academic_knowledge
 import inflect
-
+from .schools import SCHOOLS
 app = Flask(__name__)
 app.debug = True
 @app.route('/')
 def home():
-  return render_template('index.html')
+  return render_template('index.html', universities=SCHOOLS)
 
 @app.route('/university/<name>')
 def university(name):
