@@ -50,6 +50,8 @@ function histogram(histogramArr, id) {
     var vlSpec = {
       "data": {'values': histogramArr},
       "mark": "bar",
+      "description": "",
+      actions: false,
       "encoding": {
         "x": {
           "field": "year",
@@ -69,7 +71,8 @@ function histogram(histogramArr, id) {
 
     var embedSpec = {
       mode: "vega-lite",
-      spec: vlSpec
+      spec: vlSpec,
+      actions: false
     }
     vg.embed("#vis_" + id, embedSpec, function(error, result) {
         console.log(result)
@@ -79,12 +82,6 @@ histogram(overallHistogram, 0);
 </script>
 <ul>
 {% for university, uni_results in api_results.items() %}
-    <div id="vis_{{ loop.index }}"></div>
-
-    <script type="text/javascript">
-        var university = '{{ university }}';
-        histogram(histogramsByUniversity[university], {{ loop.index }});
-    </script>
     <h3 style="margin-bottom: 0">{{ university.title() }}</h3>
     <p style="margin: 0">{{ query.title() }} studied {{ uni_results['top_fields'] }}</p>
     <hr />
