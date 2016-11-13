@@ -19,6 +19,42 @@ EVALUATE_ENDPONT = 'https://api.projectoxford.ai/academic/v1.0/evaluate'
 HISTOGRAM_ENDPOINT  = 'https://api.projectoxford.ai/academic/v1.0/calchistogram'
 AUTH_HEADERS = {'Ocp-Apim-Subscription-Key': '5eea2e3f1d08402bb10aae22a8672a1d  '}
 ALL_ATTRIBUTES = ['Ti','Y','D','CC','ECC','AA.AuN','AA.AuId','AA.AfN','AA.AfId','F.FN','F.FId','J.JN','J.JId','C.CN','C.CId','RId','W','E']
+ATTRIBUTE_NAMES_BY_CODE = {
+    'logprob': 'logprob',
+    'Ti': 'title',
+    'Y': 'year',
+    'D': 'date',
+    'CC': 'citation_count',
+    'ECC': 'estimated_citation_count',
+    'AA': 'author',
+    'AuN': 'name',
+    'AuId': 'id',
+    'AfN': 'affiliation_name',
+    'AfId': 'affiliation_id',
+    'F': 'field',
+    'FN': 'name',
+    'FId': 'id',
+    'J': 'journal',
+    'JN': 'name',
+    'JId': 'id',
+    'conference': 'conference_series',
+    'CN': 'name',
+    'CId': 'id',
+    'RId': 'reference_id',
+    'W': 'words',
+    'E': 'extended_metadata',
+    'DN': 'display_name',
+    'S': 'sources',
+    'Ty': 'type',
+    'U': 'url',
+    'VFN': 'venue_full_name',
+    'VSN': 'venue_short_name',
+    'V': 'volume',
+    'I': 'issue',
+    'FP': 'first_page',
+    'LP': 'last_page',
+    'DOI': 'digital_object_identifier'}
+
 def clean_entity(entity):
     """
     Doing what microsoft should do for me
@@ -82,42 +118,6 @@ def histogram_for_uni(name):
     return sorted([{'year': h['value'], 'publications': h['count']} for h in histograms],
         key=lambda h: h['year'])
 
-ATTRIBUTE_NAMES_BY_CODE = {
-    'logprob': 'logprob',
-    'Ti': 'title',
-    'Y': 'year',
-    'D': 'date',
-    'CC': 'citation_count',
-    'ECC': 'estimated_citation_count',
-    'AA': 'author',
-    'AuN': 'name',
-    'AuId': 'id',
-    'AfN': 'affiliation_name',
-    'AfId': 'affiliation_id',
-    'F': 'field',
-    'FN': 'name',
-    'FId': 'id',
-    'J': 'journal',
-    'JN': 'name',
-    'JId': 'id',
-    'conference': 'conference_series',
-    'CN': 'name',
-    'CId': 'id',
-    'RId': 'reference_id',
-    'W': 'words',
-    'E': 'extended_metadata',
-    'DN': 'display_name',
-    'S': 'sources',
-    'Ty': 'type',
-    'U': 'url',
-    'VFN': 'venue_full_name',
-    'VSN': 'venue_short_name',
-    'V': 'volume',
-    'I': 'issue',
-    'FP': 'first_page',
-    'LP': 'last_page',
-    'DOI': 'digital_object_identifier'}
-
 affiliation_name_from_res = lambda res: res['author'][0].get('affiliation_name', '')
 def group_results_by_uni(results):
     results = sorted(results, key=affiliation_name_from_res)
@@ -177,20 +177,6 @@ def year_count(overall_histogram):
 
 def publication_count(overall_histogram):
     return sum([h['publications'] for h in overall_histogram])
-                # group by year and count results
-# def instructor_histogram_by_university(name, universities):
-#     histograms_by_university = {}
-#     for uni in universities:
-#         query = INSTRUCTOR_UNI_QUERY_EXP.format(name=name, university=uni)
-#         histogram = histogram_for_query(query)
-#         histograms_by_university[uni] = histogram
-#         time.sleep(10)
-
-#     return histograms_by_university
-
-# def university_histogram(name):
-#     query =
-#     histogram_for_query
 
 def top_fields(entities):
     fields = chain.from_iterable(map(lambda e: e.get('field', []), entities))

@@ -1,38 +1,40 @@
 {% include 'common.html' %}
 <div style="width: 600px">
-<h2><a href="">{{ query.title() }}'s Research History</a></h2>
-<h3>{{ publication_count }} publications over {{ year_count }} years at {{ histogram_by_university.keys() | length }} institutions</h3>
-<div id="vis_0"></div>
-<script type="text/json" id="histogramsByUniversity">
-{{ histogram_by_university | tojson }}
-</script>
-<script type="text/json" id="overallHistogram">
-{{ overall_histogram | tojson }}
-</script>
-<script type="text/javascript" src="{{ url_for('static', filename='histogram.js') }}"></script>
-<script type="text/javascript">
-var histogramsByUniversity = JSON.parse(document.getElementById('histogramsByUniversity').innerText);
-var overallHistogram = JSON.parse(document.getElementById('overallHistogram').innerText);
-histogram(overallHistogram, 0);
-</script>
-<ul>
-{% for university, uni_results in api_results.items() %}
-    <h3 style="margin-bottom: 0">{{ university.title() }}</h3>
-    <p style="margin: 0">{{ query.title() }} studied {{ uni_results['top_fields'] }}</p>
-    <hr />
-    {% for entity in uni_results['results'] %}
-        <li>
-        {% set url = entity.get('extended_metadata', {}).get('sources', [{'url': '#'}])[0]['url'] %}
-        <a href="{{ url }}">
-            {{ entity['title'].title() or entity['extended_metadata']['display_name'].title() }}
-        </a>
-        <p>{{ url.split('/')[2].lstrip('www.') if (url.split('/') | length) > 1 }} • {{ entity['date'] }} • {{ ', '.join(entity['field']) }}</p>
-        <p>{{ entity['extended_metadata']['date'] }}</p>
-        </li>
-        {% if not loop.last %}
-            <hr />
-        {% endif %}
+    <h2><a href="">{{ query.title() }}'s Research History</a></h2>
+    <h3>{{ publication_count }} publications over {{ year_count }} years at {{ histogram_by_university.keys() | length }} institutions</h3>
+    <div id="vis_0"></div>
+
+    <script type="text/json" id="histogramsByUniversity">
+    {{ histogram_by_university | tojson }}
+    </script>
+    <script type="text/json" id="overallHistogram">
+    {{ overall_histogram | tojson }}
+    </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='histogram.js') }}"></script>
+    <script type="text/javascript">
+    var histogramsByUniversity = JSON.parse(document.getElementById('histogramsByUniversity').innerText);
+    var overallHistogram = JSON.parse(document.getElementById('overallHistogram').innerText);
+    histogram(overallHistogram, 0);
+    </script>
+
+    <ul>
+    {% for university, uni_results in api_results.items() %}
+        <h3 style="margin-bottom: 0">{{ university.title() }}</h3>
+        <p style="margin: 0">{{ query.title() }} studied {{ uni_results['top_fields'] }}</p>
+        <hr />
+        {% for entity in uni_results['results'] %}
+            <li>
+            {% set url = entity.get('extended_metadata', {}).get('sources', [{'url': '#'}])[0]['url'] %}
+            <a href="{{ url }}">
+                {{ entity['title'].title() or entity['extended_metadata']['display_name'].title() }}
+            </a>
+            <p>{{ url.split('/')[2].lstrip('www.') if (url.split('/') | length) > 1 }} • {{ entity['date'] }} • {{ ', '.join(entity['field']) }}</p>
+            <p>{{ entity['extended_metadata']['date'] }}</p>
+            </li>
+            {% if not loop.last %}
+                <hr />
+            {% endif %}
+        {% endfor %}
     {% endfor %}
-{% endfor %}
-</ul>
+    </ul>
 </div>
