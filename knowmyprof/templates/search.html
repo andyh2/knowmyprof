@@ -1,32 +1,4 @@
-<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<script src="//vega.github.io/vega/vega.js" charset="utf-8"></script>
-<script src="//vega.github.io/vega-lite/vega-lite.js" charset="utf-8"></script>
-<script src="//vega.github.io/vega-editor/vendor/vega-embed.js" charset="utf-8"></script>
-<link href="https://fonts.googleapis.com/css?family=Vollkorn" rel="stylesheet">
-<style>
-body {
-    font-family: Vollkorn;
-}
-li {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-}
-ul {
-    margin: 0;
-    padding: 0;
-}
-p {
-    margin: 8px 0;
-}
-hr {
-    width: 100%;
-}
-a, a:visited {
-    color: #0057ca;
-    text-decoration: none
-}
-</style>
+{% include 'common.html' %}
 <div style="width: 600px">
 <h2><a href="">{{ query.title() }}'s Research History</a></h2>
 <h3>{{ publication_count }} publications over {{ year_count }} years at {{ histogram_by_university.keys() | length }} institutions</h3>
@@ -37,7 +9,7 @@ a, a:visited {
 <script type="text/json" id="overallHistogram">
 {{ overall_histogram | tojson }}
 </script>
-<script type="text/javascript" src="histogram.js" />
+<script type="text/javascript" src="{{ url_for('static', filename='histogram.js') }}"></script>
 <script type="text/javascript">
 var histogramsByUniversity = JSON.parse(document.getElementById('histogramsByUniversity').innerText);
 var overallHistogram = JSON.parse(document.getElementById('overallHistogram').innerText);
