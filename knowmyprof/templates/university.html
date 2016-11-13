@@ -1,0 +1,12 @@
+{% include 'common.html' %}
+<h2>{{ university }}</h2>
+<script type="text/json" id="histogram">
+{{ histogram | tojson }}
+</script>
+<h3>Publications over time</h3>
+<div id="vis_1"></div>
+<script type="text/javascript" src="{{ url_for('static', filename='histogram.js')}}"></script>
+<script type="text/javascript">
+var uniHistogram = JSON.parse(document.getElementById('histogram').innerText);
+histogram(uniHistogram, 1);
+</script>
