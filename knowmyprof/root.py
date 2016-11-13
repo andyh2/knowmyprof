@@ -11,12 +11,19 @@ def home():
 UNIVERSITIES = ['university of california davis', 'university of california berkeley']
 @app.route('/search')
 def search():
-  q = request.args.get('q')
-  api_results = professor.search(q, UNIVERSITIES)
-
+  q = request.args.get('q').lower()
+  results_by_uni = professor.search_instructor(q, UNIVERSITIES)
+  histogram_by_university = professor.instructor_histogram_by_university(results_by_uni)
+  overall_histogram = professor.get_overall_histogram(histogram_by_university)
+  year_count = professor.year_count(overall_histogram)
+  publication_count = professor.publication_count(overall_histogram)
   return render_template('search.html',
     query=q,
     query_inflected=inflect.engine().plural(q),
     university=UNIVERSITIES[0],
-    api_results=api_results)
+    histogram_by_university=histogram_by_university,
+    overall_histogram=overall_histogram,
+    year_count=year_count,
+    publication_count=publication_count,
+    api_results=results_by_uni)
 

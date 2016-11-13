@@ -1,14 +1,24 @@
 import requests
 import json
 import inflect
-from collections import Counter
+from collections import Counter, OrderedDict
 from itertools import chain, groupby
+import logging
+import time
+
+logging.basicConfig(format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s') # you need to initialize logging, otherwise you will not see anything from requests
+logging.getLogger().setLevel(logging.DEBUG)
+requests_log = logging.getLogger("requests.packages.urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
+
+UNIVERSITY_QUERY_EXP = "Composite(AA.AfN='{name}')"
 INSTRUCTOR_QUERY_EXP = "Composite(AA.AuN='{name}')"
 INSTRUCTOR_UNI_QUERY_EXP = "And(Composite(AA.AuN='{name}'),Composite(AA.AfN='{university}'))"
 EVALUATE_ENDPONT = 'https://api.projectoxford.ai/academic/v1.0/evaluate'
-AUTH_HEADERS = {'Ocp-Apim-Subscription-Key': 'a620578e2cf4455b9ba5b5c419bcab26'}
-ALL_ATTRIBUTES = ['Y','D','CC','ECC','AA.AuN','AA.AuId','AA.AfN','AA.AfId','F.FN','F.FId','J.JN','J.JId','C.CN','C.CId','RId','W','E']
-
+HISTOGRAM_ENDPOINT  = 'https://api.projectoxford.ai/academic/v1.0/calchistogram'
+AUTH_HEADERS = {'Ocp-Apim-Subscription-Key': '5eea2e3f1d08402bb10aae22a8672a1d  '}
+ALL_ATTRIBUTES = ['Ti','Y','D','CC','ECC','AA.AuN','AA.AuId','AA.AfN','AA.AfId','F.FN','F.FId','J.JN','J.JId','C.CN','C.CId','RId','W','E']
 def clean_entity(entity):
     """
     Doing what microsoft should do for me
@@ -36,20 +46,35 @@ def query_for_instructor(name, university):
     else:
         return INSTRUCTOR_QUERY_EXP.format(name=name)
 
-def entities_for_query(name, university):
-    query = query_for_instructor(name, university)
+def entities_for_query(query, count=10):
     params = {
         'expr': query,
         'model': 'latest',
-        'count': 10,
+        'count': count,
         'offset': 0,
         'attributes': ALL_ATTRIBUTES
     }
+
     r = requests.get(EVALUATE_ENDPONT, params=params, headers=AUTH_HEADERS)
-    print(params)
     response = json.loads(r.text)
     return [clean_entity(entity)
         for entity in response['entities']]
+
+def clean_histogram(histograms):
+    return next(h for h in histograms if h['attribute'] == 'Y')
+def histogram_for_query(query, count=100):
+    params = {
+        'expr': query,
+        'model': 'latest',
+        'count': count,
+        'offset': 0,
+        'attributes': ALL_ATTRIBUTES
+    }
+    r = requests.get(HISTOGRAM_ENDPOINT, params=params, headers=AUTH_HEADERS)
+
+    response = json.loads(r.text)
+    return [histogram for histogram in response['histograms']
+        if histogram['attribute'] == 'Y']
 
 ATTRIBUTE_NAMES_BY_CODE = {
     'logprob': 'logprob',
@@ -87,28 +112,82 @@ ATTRIBUTE_NAMES_BY_CODE = {
     'LP': 'last_page',
     'DOI': 'digital_object_identifier'}
 
-affiliation_name_from_res = lambda res: res['author'][0]['affiliation_name']
+affiliation_name_from_res = lambda res: res['author'][0].get('affiliation_name', '')
 def group_results_by_uni(results):
     results = sorted(results, key=affiliation_name_from_res)
-    return dict([(key, list(res)) for key, res in groupby(results, affiliation_name_from_res)])
-def search(query, universities):
-    results = list()
-    for uni in universities:
-        results += sorted(entities_for_query(query, uni),
-            key=lambda entity: entity['date'],
-            reverse=True)
+    grouped_results = [(key, list(res)) for key, res in groupby(results, affiliation_name_from_res)
+        if key]
+
+    return OrderedDict(sorted(grouped_results, key=lambda results: max(map(lambda res: res.get('date'), results[1])), reverse=True))
+
+def extract_field_names_in_results(results):
     for res in results:
         if res.get('field'):
             res['field'] = [f['name'] for f in res['field']]
+def search_instructor(name, universities):
+    results = list()
+    for uni in universities:
+        query = query_for_instructor(name, uni)
+        results += sorted(entities_for_query(query, count=1000),
+            key=lambda entity: entity['date'],
+            reverse=True)
 
+    extract_field_names_in_results(results)
     grouped_results = group_results_by_uni(results)
     for uni, results in grouped_results.items():
         grouped_results[uni] = {'results': results, 'top_fields': top_fields(results)}
     return grouped_results
 
+def search_university(name):
+    results = list()
+    for uni in universities:
+        query = UNIVERSITY_QUERY_EXP.format(uni)
+        results += sorted(entities_for_query(query, count=1000),
+            key=lambda entity: entity['date'],
+            reverse=True)
+    extract_field_names_in_results(results)
+    return results
+
+def instructor_histogram_by_university(results_by_uni):
+    histograms_by_university = dict()
+    for uni, results in results_by_uni.items():
+        years = list(map(lambda res: res['year'], results['results']))
+        counter = Counter(years) # histogram is year by count
+        histogram_samples = [{'year': year, 'publications': count}
+            for year, count in counter.items()]
+        histogram_samples = [next((s for s in histogram_samples if s['year'] == year), {'year': year, 'publications': 0})
+            for year in range(min(years), max(years) + 1)]
+
+        histograms_by_university[uni] = sorted(histogram_samples, key=lambda s: s['year'])
+
+    return histograms_by_university
+
+def get_overall_histogram(histogram_by_university):
+    return list(chain(*[results for uni, results in histogram_by_university.items()]))
+
+def year_count(overall_histogram):
+    years = [h['year'] for h in overall_histogram]
+    return max(years) - min(years)
+
+def publication_count(overall_histogram):
+    return sum([h['publications'] for h in overall_histogram])
+                # group by year and count results
+# def instructor_histogram_by_university(name, universities):
+#     histograms_by_university = {}
+#     for uni in universities:
+#         query = INSTRUCTOR_UNI_QUERY_EXP.format(name=name, university=uni)
+#         histogram = histogram_for_query(query)
+#         histograms_by_university[uni] = histogram
+#         time.sleep(10)
+
+#     return histograms_by_university
+
+# def university_histogram(name):
+#     query =
+#     histogram_for_query
+
 def top_fields(entities):
-    print(entities[0]['field'])
-    fields = chain.from_iterable(map(lambda e: e['field'], entities))
+    fields = chain.from_iterable(map(lambda e: e.get('field', []), entities))
     counter = Counter(fields)
 
     common = [c[0] for c in counter.most_common(3)]

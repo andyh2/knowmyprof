@@ -1,3 +1,7 @@
+<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="//vega.github.io/vega/vega.js" charset="utf-8"></script>
+<script src="//vega.github.io/vega-lite/vega-lite.js" charset="utf-8"></script>
+<script src="//vega.github.io/vega-editor/vendor/vega-embed.js" charset="utf-8"></script>
 <link href="https://fonts.googleapis.com/css?family=Vollkorn" rel="stylesheet">
 <style>
 body {
@@ -24,19 +28,73 @@ a, a:visited {
 }
 </style>
 <div style="width: 600px">
-<h2><a href="">{{ query_inflected.title() }} Research History</a></h2>
+<h2><a href="">{{ query.title() }}'s Research History</a></h2>
+<p>{{ publication_count }} publications over {{ year_count }} years</p>
+<div id="vis_0"></div>
+<script type="text/json" id="histogramsByUniversity">
+{{ histogram_by_university | tojson }}
+</script>
+<script type="text/json" id="overallHistogram">
+{{ overall_histogram | tojson }}
+</script>
+
+<script type="text/javascript">
+var histogramsByUniversity = JSON.parse(document.getElementById('histogramsByUniversity').innerText);
+var overallHistogram = JSON.parse(document.getElementById('overallHistogram').innerText);
+function histogram(histogramArr, id) {
+    var histogramYears = histogramArr.map(function(u) { return u['year']; });
+    var scaleMin = Math.min.apply(null, histogramYears);
+    var scaleMax = Math.max.apply(null, histogramYears);
+    console.log(histogramYears)
+    console.log(scaleMin, scaleMax);
+    var vlSpec = {
+      "data": {'values': histogramArr},
+      "mark": "bar",
+      "encoding": {
+        "x": {
+          "field": "year",
+          "type": "ordinal",
+          'title': 'Year',
+          'scale': {
+            // domain: [scaleMin, scaleMax],
+            bandSize: 17
+          }
+        },
+        "y": {
+          "field": "publications",
+          "type": "quantitative"
+        }
+      }
+    }
+
+    var embedSpec = {
+      mode: "vega-lite",
+      spec: vlSpec
+    }
+    vg.embed("#vis_" + id, embedSpec, function(error, result) {
+        console.log(result)
+    });
+}
+histogram(overallHistogram, 0);
+</script>
 <ul>
 {% for university, uni_results in api_results.items() %}
+    <div id="vis_{{ loop.index }}"></div>
+
+    <script type="text/javascript">
+        var university = '{{ university }}';
+        histogram(histogramsByUniversity[university], {{ loop.index }});
+    </script>
     <h3 style="margin-bottom: 0">{{ university.title() }}</h3>
     <p style="margin: 0">{{ query.title() }} studied {{ uni_results['top_fields'] }}</p>
     <hr />
     {% for entity in uni_results['results'] %}
         <li>
-        {% set url = entity.get('extended_metadata', {}).get('sources', ['#'])[0]['url'] %}
+        {% set url = entity.get('extended_metadata', {}).get('sources', [{'url': '#'}])[0]['url'] %}
         <a href="{{ url }}">
-            {{ entity['title'] or entity['extended_metadata']['display_name'].title() }}
+            {{ entity['title'].title() or entity['extended_metadata']['display_name'].title() }}
         </a>
-        <p>{{ url.split('/')[2].lstrip('www.') }} • {{ entity['date'] }} • {{ ', '.join(entity['field']) }}</p>
+        <p>{{ url.split('/')[2].lstrip('www.') if (url.split('/') | length) > 1 }} • {{ entity['date'] }} • {{ ', '.join(entity['field']) }}</p>
         <p>{{ entity['extended_metadata']['date'] }}</p>
         </li>
         {% if not loop.last %}
