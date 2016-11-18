@@ -17,7 +17,7 @@ INSTRUCTOR_QUERY_EXP = "Composite(AA.AuN='{name}')"
 INSTRUCTOR_UNI_QUERY_EXP = "And(Composite(AA.AuN='{name}'),Composite(AA.AfN='{university}'))"
 EVALUATE_ENDPONT = 'https://api.projectoxford.ai/academic/v1.0/evaluate'
 HISTOGRAM_ENDPOINT  = 'https://api.projectoxford.ai/academic/v1.0/calchistogram'
-AUTH_HEADERS = {'Ocp-Apim-Subscription-Key': '5eea2e3f1d08402bb10aae22a8672a1d  '}
+AUTH_HEADERS = {'Ocp-Apim-Subscription-Key': '  '}
 ALL_ATTRIBUTES = ['Ti','Y','D','CC','ECC','AA.AuN','AA.AuId','AA.AfN','AA.AfId','F.FN','F.FId','J.JN','J.JId','C.CN','C.CId','RId','W','E']
 ATTRIBUTE_NAMES_BY_CODE = {
     'logprob': 'logprob',
